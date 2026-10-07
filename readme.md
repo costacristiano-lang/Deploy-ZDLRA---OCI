@@ -78,17 +78,24 @@ Official references:
 
 ## High-level architecture
 
-```text
-+--------------------------+        Ports 2484 / 8005        +----------------------------------+
-| Oracle database on OCI   | --------------------------------> | OCI Autonomous Recovery Service  |
-| Base DB / Exadata DB     |                                   | Backup catalog / protected DB    |
-+--------------------------+                                   +----------------------------------+
-          |
-          | VCN / private subnet / security rules
-          v
-+--------------------------+
-| OCI Networking / IAM     |
-+--------------------------+
+```mermaid
+flowchart LR
+    DB[("Oracle database<br/>Base DB / Exadata DB")]
+    RS["OCI Autonomous Recovery Service<br/>protected database and backup catalog"]
+    subgraph SETUP["Initial configuration"]
+        IAM["IAM and private network<br/>ports 2484 / 8005"]
+        POLICY["Protection policy<br/>automatic backups"]
+        IAM --> POLICY
+    end
+    subgraph PROTECTION["Ongoing protection"]
+        BACKUP["Managed backups"]
+        REDO["Real-time data protection<br/>when supported and enabled"]
+    end
+    POLICY -. "Configure" .-> RS
+    DB --> BACKUP --> RS
+    DB -. "Redo" .-> REDO
+    REDO -. "Protection" .-> RS
+    RS --> RESTORE["Restore / recover test"]
 ```
 
 ## Deployment checklist
